@@ -49,17 +49,19 @@ fn main() {
         let x_field_elem = Fq2::new(x_c0_field_elem, x_c1_field_elem);
         let y_field_elem = Fq2::new(y_c0_field_elem, y_c1_field_elem);
 
-        g2.push(G2Affine::new(x_field_elem, y_field_elem, false));
+        let elem = G2Affine::new(x_field_elem, y_field_elem, false);
+        assert!(elem.is_on_curve());
+        g2.push(elem);
         
         line.clear();
     }
 
     let mut file_out = File::create("g2_2.dat").unwrap();
-    let mut serialized = vec![0u8; G2Affine::prime_subgroup_generator().serialized_size()];
+    let mut serialized = vec![0u8; G2Affine::prime_subgroup_generator().uncompressed_size()];
 
     for elem in g2.iter() {
         let mut cursor = Cursor::new(&mut serialized[..]);
-        elem.serialize(&mut cursor).unwrap();
+        elem.serialize_uncompressed(&mut cursor).unwrap();
 
         file_out.write_all(&serialized[..]).unwrap();
     }

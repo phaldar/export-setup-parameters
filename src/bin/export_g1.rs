@@ -4,9 +4,12 @@ use ark_serialize::CanonicalSerialize;
 use num_bigint::BigUint;
 use std::{
     fs::File,
-    io::{BufReader, BufRead, Cursor, Write}
+    io::{BufReader, BufRead, Write, Cursor}
 };
 use text_io::scan;
+
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
 
 fn main() {
     let file_in = File::open("g1_coeffs.dat").unwrap();
@@ -17,7 +20,6 @@ fn main() {
     let mut g1 = Vec::<G1Affine>::new();
 
     let mut counter = 0;
-
     loop {
         let _ = reader.read_line(&mut line).unwrap();
         if line.trim().len() == 0 {
@@ -47,18 +49,20 @@ fn main() {
         line.clear();
     }
 
-    for i in 10..=21 {
-        let size = 1 << i;
+    let idx: Vec<_> = (10..=21).step_by(1).collect();
+ 
+    let _: Vec<_> = ark_std::cfg_into_iter!(idx).
+        map(|i| {
+            let size = 1 << i;
 
-        let mut file_out = File::create(format!("g1_2_{}_plus_3.dat", i)).unwrap();
+            let mut file_out = File::create(format!("g1_2_{}_plus_3.dat", i)).unwrap();
 
-        let mut serialized = vec![0u8; G1Affine::prime_subgroup_generator().serialized_size()];
+            let mut serialized = vec![0u8; G1Affine::prime_subgroup_generator().uncompressed_size()];
 
-        for elem in g1.iter().take(size + 3) {
-            let mut cursor = Cursor::new(&mut serialized[..]);
-            elem.serialize(&mut cursor).unwrap();
-
-            file_out.write_all(&serialized[..]).unwrap();
-        }
-    }
+            for elem in g1.iter().take(size + 3) {
+                let mut cursor = Cursor::new(&mut serialized[..]);
+                elem.serialize_uncompressed(&mut cursor).unwrap();
+                file_out.write_all(&serialized[..]).unwrap();
+            }
+        }).collect();
 }
