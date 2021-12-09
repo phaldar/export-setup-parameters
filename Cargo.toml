@@ -1,0 +1,25 @@
+[package]
+name = "export-setup-parameters"
+version = "0.1.0"
+authors = ["Findora <engineering@findora.org>"]
+edition = "2018"
+description = "Export Zcash setup parameters"
+
+[dependencies]
+ark-bls12-381 = "^0.3.0"
+ark-ec = "^0.3.0"
+ark-serialize = "^0.3.0"
+num-bigint = "0.4.3"
+text_io = "0.1.9"
+
+[features]
+default = ["std"]
+std = ["ark-bls12-381/std"]
+
+[patch.crates-io]
+ark-ec = { git = "https://github.com/findora-crypto-lead/algebra" }
+ark-ff = { git = "https://github.com/findora-crypto-lead/algebra" }
+ark-serialize = { git = "https://github.com/findora-crypto-lead/algebra" }
+ark-std = { git = "https://github.com/findora-crypto-lead/std" }
+ark-bls12-381 = { git = "https://github.com/findora-crypto-lead/curves" }
+
